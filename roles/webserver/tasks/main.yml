@@ -1,0 +1,35 @@
+---
+- name: Install Apache2 and PHP5
+  apt:
+    name: "{{ item }}"
+    cache_valid_time: 3600
+  with_items:
+    - apache2
+    - libapache2-mod-php
+
+- name: Enable Apache2 Mods
+  apache2_module:
+    state: present
+    name: "{{ item }}"
+  with_items:
+    - http2
+    - ssl
+
+- name: HTTP2 Config File
+  template:
+    dest: /etc/apache2/conf-available/http2.conf
+    src: files/http2.conf
+
+- name: Enable Apache HTTP2
+  file:
+    dest: /etc/apache2/conf-enabled/http2.conf
+    src: /etc/apache2/conf-available/http2.conf
+    state: link
+  notify: "restart apache"
+
+- name: Enable Default-SSL VHost
+  file:
+    dest: /etc/apache2/sites-enabled/default-ssl.conf
+    src: /etc/apache2/sites-available/default-ssl.conf
+    state: link
+  notify: "restart apache"
